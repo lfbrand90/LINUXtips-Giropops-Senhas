@@ -1,6 +1,6 @@
 services:
   giropops-senhas:
-    image: lfbrand90/linuxtips-giropops-senhas:3.0
+    image: lfbrand90/linuxtips-giropops-senhas-signed:1.0
     build:
       context: .
       dockerfile: Dockerfile
