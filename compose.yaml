@@ -1,3 +1,4 @@
+version: '3'
 services:
   giropops-senhas:
     image: lfbrand90/linuxtips-giropops-senhas-signed:1.0
@@ -7,12 +8,33 @@ services:
     container_name: giropops-senhas
     ports:
       - "8000:5000"
+    networks:
+      - giropopsNetwork
+    volumes:
+      - strigus:/strigus
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
   redis:
     image: "cgr.dev/chainguard/redis"
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - giropopsNetwork
+    volumes:
+      - strigus:/strigus
+networks:
+  giropopsNetwork:
+    driver: bridge
+volumes:
+  strigus:
