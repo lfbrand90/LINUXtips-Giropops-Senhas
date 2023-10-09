@@ -5,25 +5,46 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: giropops-senhas
+    container_name: giropops-senhas #not scalable-friendly 
     ports:
       - "8000:5000"
     networks:
       - giropopsNetwork
     volumes:
-      - strigus:/strigus
+      type: volume
+      source: strigus
+      target: /strigus
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
+    #env_file:
+    #  - fileName.env
     deploy:
       resources:
+        replicas: 1
+        update-config: 
+          parallelism: 1
+          delay: 10s
         reservations:
           cpus: '0.25'
           memory: 128M
         limits:
           cpus: '0.5'
           memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      devices:
+        - "/dev/ttyUSB0:/dev/ttyUSB0"
+      dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    labels:
+      description: "PICK LINUXtips"
+      version: "1.0"
+       
   redis:
     image: "cgr.dev/chainguard/redis"
     container_name: redis
@@ -33,8 +54,27 @@ services:
       - giropopsNetwork
     volumes:
       - strigus:/strigus
+    #healthcheck:
+    #  test: ["CMD", "redis-cli", "ping"]
+    #  interval: 45s
+    #  timeout: 5s
+    #  retries: 3
+    #  start_period: 30s
 networks:
   giropopsNetwork:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.20.0.0/16"
+      labels:
+        description.networks: "giropops app network"
 volumes:
   strigus:
+    driver: local
+    driver_opts:
+      type: "none"
+      #device:
+    bind: o
+    labels:
+      description.volume: "giropops app volume"
